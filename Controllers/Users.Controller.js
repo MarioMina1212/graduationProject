@@ -2,7 +2,7 @@ const asyncMiddleware = require("../middleware/async.middleware");
 const httpStatusText = require("../utils/http.status.text"); 
 const User =require('../Schema/user.model');
 const appError =require("../utils/appError");
-const bycrpt =require("bcryptjs");
+const bcrypt =require("bcryptjs");
 const genrateToken =require("../utils/genrateJWT");
 
 const getAllUsers =asyncMiddleware( async (req, res) => {
