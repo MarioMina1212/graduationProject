@@ -18,7 +18,9 @@ mongoose.connect(url)
   .catch((err) => console.log(err));
 
 app.use('/api',verifyToken,userController.getAllUsers)
-app.use ("/register",userController.register)
+app.use ("/register",(req,res,next)=>{
+  res.send("register")
+})
 app.use ("/login",userController.Login)
   
 app.use((error,req,res,next)=>{
