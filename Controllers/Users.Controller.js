@@ -2,7 +2,7 @@ const asyncMiddleware = require("../middleware/async.middleware");
 const httpStatusText = require("../utils/http.status.text"); 
 const User =require('../Schema/user.model');
 const appError =require("../utils/appError");
-const bcrypt =require("bcryptjs");
+const bcrypt = require('bcrypt'); 
 const genrateToken =require("../utils/genrateJWT");
 
 const getAllUsers =asyncMiddleware( async (req, res) => {
@@ -21,31 +21,43 @@ const skip = (page-1)*limit
 const register = asyncMiddleware(async (req, res, next) => {
   const { firstName, lastName, email, password } = req.body;
 
-  const userExistsPromise = User.findOne({ email });
-  const hashedPasswordPromise = bcrypt.hash(password, 10);
-
-  const [oldUser, hashedPassword] = await Promise.all([userExistsPromise, hashedPasswordPromise]);
-
-  if (oldUser) {
-    const error = appError.create("user already exists", 400, httpStatusText.FAIL);
+  // التحقق من أن جميع الحقول مطلوبة
+  if (!firstName || !lastName || !email || !password) {
+    const error = appError.create("All fields are required", 400, httpStatusText.FAIL);
     return next(error);
   }
 
+  // التحقق من عدم وجود المستخدم مسبقاً
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    const error = appError.create("User already exists", 400, httpStatusText.FAIL);
+    return next(error);
+  }
+
+  // تشفير كلمة المرور
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // إنشاء المستخدم الجديد في قاعدة البيانات
   const newUser = new User({
     firstName,
     lastName,
     email,
-    password: hashedPassword,
+    password: hashedPassword
   });
+  
+  await newUser.save(); // حفظ المستخدم أولاً للحصول على _id
 
-  const tokenPromise = generateToken({ email: newUser.email, id: newUser._id });
+  // توليد الرمز المميز (JWT) بعد إنشاء المستخدم للحصول على newUser._id
+  const token = await genrateToken({ email: newUser.email, id: newUser._id });
 
-  const [savedUser, token] = await Promise.all([newUser.save(), tokenPromise]);
+  // تعيين الرمز المميز للمستخدم
+  newUser.token = token;
+  await newUser.save(); // تحديث المستخدم بالرمز المميز المحفوظ
 
-  savedUser.token = token;
-
-  return res.status(201).json({ status: httpStatusText.SUCCESS, data: { user: savedUser } });
+  // إرسال استجابة مع بيانات المستخدم
+  return res.status(201).json({ status: httpStatusText.SUCCESS, data: { user: newUser } });
 });
+
 
      
 
