@@ -14,8 +14,7 @@ router.route('/')
    .post(userController.register)
 
 
-router.route('/login')
-   .post(userController.Login)
+
 
 
 

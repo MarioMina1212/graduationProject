@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const appError = require('./utils/appError');
 const UserRouter =require('./routes/users')
+const userController = require('./Controllers/Users.Controller')
+const verifyToken =require('./middleware/verifyToken')
 const httpStatusText = require('./utils/http.status.text');
 const app = express();
 const url =process.env.MONGO_URL
@@ -15,10 +17,9 @@ mongoose.connect(url)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.log(err));
 
-app.use("/api",UserRouter)
-app.use ("/login",((req,res,next)=>{
-    res.status(200).json({message:"login successfully"})
-}))
+app.use('/api',verifyToken,userController.getAllUsers)
+app.use ("/register",userController.register)
+app.use ("/login",userController.Login)
   
 app.use((error,req,res,next)=>{
   res.status(error.statusCode || 500).json({status:httpStatusText.ERROR|| httpStatusText.ERROR,message:error.message,code:error.statusCode || 500,data:null })
