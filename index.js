@@ -16,6 +16,9 @@ mongoose.connect(url)
   .catch((err) => console.log(err));
 
 app.use("/api",UserRouter)
+app.use ("/login",((req,res,next)=>{
+    res.status(200).json({message:"login successfully"})
+}))
   
 app.use((error,req,res,next)=>{
   res.status(error.statusCode || 500).json({status:httpStatusText.ERROR|| httpStatusText.ERROR,message:error.message,code:error.statusCode || 500,data:null })
