@@ -18,33 +18,35 @@ const skip = (page-1)*limit
 
 
 
-const register =asyncMiddleware(async (req, res,next) => {
+const register = asyncMiddleware(async (req, res, next) => {
   const { firstName, lastName, email, password } = req.body;
 
-  const olduser= await User.findOne({email})
-  if(olduser){
-   const error=appError.create("user already exist",400,httpStatusText.FAIL)
-    return next(error)  
+  const userExistsPromise = User.findOne({ email });
+  const hashedPasswordPromise = bcrypt.hash(password, 10);
+
+  const [oldUser, hashedPassword] = await Promise.all([userExistsPromise, hashedPasswordPromise]);
+
+  if (oldUser) {
+    const error = appError.create("user already exists", 400, httpStatusText.FAIL);
+    return next(error);
   }
 
-  //password hashing (Security)
-  const hashedPassword = await bycrpt.hash(password, 10);
-
-
-  const newuser = await User({
+  const newUser = new User({
     firstName,
     lastName,
     email,
-    password:hashedPassword,
+    password: hashedPassword,
   });
-  //genrate token
-const token =await genrateToken({email:newuser.email,id:newuser._id})
-newuser.token=token
 
+  const tokenPromise = generateToken({ email: newUser.email, id: newUser._id });
 
-  await  newuser.save();
-   return res.status(201).json({ status: httpStatusText.SUCCESS, data: { newuser } });
+  const [savedUser, token] = await Promise.all([newUser.save(), tokenPromise]);
+
+  savedUser.token = token;
+
+  return res.status(201).json({ status: httpStatusText.SUCCESS, data: { user: savedUser } });
 });
+
      
 
 
