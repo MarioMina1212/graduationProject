@@ -2,7 +2,7 @@ const asyncMiddleware = require("../middleware/async.middleware");
 const httpStatusText = require("../utils/http.status.text"); 
 const User =require('../Schema/user.model');
 const appError =require("../utils/appError");
-const bcrypt = require('bcrypt'); 
+const bycrpt= require('bcrypt'); 
 const genrateToken =require("../utils/genrateJWT");
 
 const getAllUsers =asyncMiddleware( async (req, res) => {
@@ -17,51 +17,40 @@ const skip = (page-1)*limit
 })
 
 
-
 const register = asyncMiddleware(async (req, res, next) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email,phone, password, confirmPassword} = req.body;
 
-  // التحقق من أن جميع الحقول مطلوبة
-  if (!firstName || !lastName || !email || !password) {
-    const error = appError.create("All fields are required", 400, httpStatusText.FAIL);
-    return next(error);
+  if (!firstName || !lastName ||!phone|| !email || !password, !confirmPassword) {
+    return next(appError.create("All fields are required", 400, httpStatusText.FAIL));
+  }
+ 
+  if(password.trim() !== confirmPassword.trim()) {
+    return next(appError.create("Password and confirm password do not match", 400, httpStatusText.FAIL));
   }
 
-  // التحقق من عدم وجود المستخدم مسبقاً
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email }).exec();  
   if (existingUser) {
-    const error = appError.create("User already exists", 400, httpStatusText.FAIL);
-    return next(error);
+    return next(appError.create("User already exists", 400, httpStatusText.FAIL));
   }
 
-  // تشفير كلمة المرور
-  const hashedPassword = await bcrypt.hash(password, 10);
 
-  // إنشاء المستخدم الجديد في قاعدة البيانات
+  const hashedPassword = await bycrpt.hash(password, 8); 
   const newUser = new User({
     firstName,
     lastName,
     email,
-    password: hashedPassword
+    phone,
+    password: hashedPassword,
+    "__v":false,
   });
-  
-  await newUser.save(); // حفظ المستخدم أولاً للحصول على _id
 
-  // توليد الرمز المميز (JWT) بعد إنشاء المستخدم للحصول على newUser._id
+  await newUser.save(); 
   const token = await genrateToken({ email: newUser.email, id: newUser._id });
 
-  // تعيين الرمز المميز للمستخدم
   newUser.token = token;
-  await newUser.save(); // تحديث المستخدم بالرمز المميز المحفوظ
 
-  // إرسال استجابة مع بيانات المستخدم
-  return res.status(201).json({ status: httpStatusText.SUCCESS, data: { user: newUser } });
+  return res.status(200).json({ status: httpStatusText.SUCCESS, data: { user: newUser } });
 });
-
-
-     
-
-
 
 const Login =asyncMiddleware(async (req, res,next) => {
      
@@ -85,7 +74,6 @@ if(!user){
 
  const matcedPassword = await bycrpt.compare(password, user.password)
  if(user&&matcedPassword){
-  //logged in successfully
   const token = await genrateToken({email:user.email,id:user._id})
   return res.status(200).json({ status: httpStatusText.SUCCESS, data: {token} });
  }else{
