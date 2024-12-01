@@ -15,7 +15,6 @@ const userSchema=new mongoose.Schema({
     unquie:true,
     required:[true,"email is required"],
     validate:[validator.isEmail,'filed must be a valid email']
-      
   },
   phone:{
     type:String,
