@@ -8,7 +8,7 @@ const verifyToken =require('../middleware/verifyToken')
 //login
 
 router.route('/api')
-   .get(verifyToken,userController.getAllUsers)
+   .get(userController.getAllUsers)
 
    router.route('/register')
    .post(userController.register)
