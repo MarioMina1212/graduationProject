@@ -11,7 +11,6 @@ const port = process.env.PORT
 app.use(express.json());
 app.use(cors());
 const otpRoutes = require('./routes/otpRoutes');
-const userRoutes = require('./routes/userRoutes');
 
 mongoose.connect(url)
   .then(() => console.log('MongoDB connected successfully'))
@@ -19,8 +18,8 @@ mongoose.connect(url)
 
 app.use('/api',userController.getAllUsers)
 // verify Token
-app.use ("/",userRoutes)
-app.use ("/login",userRoutes)
+app.use ("/register",userController.register)
+app.use ("/login",userController.Login)
 app.use('/otp', otpRoutes);
 app.post('/verify-otp', (req, res) => {
   const userOtp = req.body.otp; 
