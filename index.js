@@ -11,18 +11,16 @@ const port = process.env.PORT
 app.use(express.json());
 app.use(cors());
 const otpRoutes = require('./routes/otpRoutes');
+const userRoutes = require('./routes/users');
 
 mongoose.connect(url)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.log(err));
 
-app.use('/api',userController.getAllUsers)
-// verify Token
-app.use ("/register",userController.register)
-app.use ("/login",userController.Login)
+app.use('/users', userRoutes);
 app.use('/otp', otpRoutes);
 app.post('/verify-otp', (req, res) => {
-  const userOtp = req.body.otp; // Assuming OTP is sent in the request body
+  const userOtp = req.body.otp; 
   if (userOtp === otp) {
       res.send('OTP verified successfully.');
   } else {

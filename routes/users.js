@@ -7,7 +7,7 @@ const verifyToken =require('../middleware/verifyToken')
 //register
 //login
 
-router.route('/')
+router.route('/api')
    .get(verifyToken,userController.getAllUsers)
 
    router.route('/register')

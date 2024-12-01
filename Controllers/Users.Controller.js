@@ -19,6 +19,7 @@ const skip = (page-1)*limit
 
 const register = asyncMiddleware(async (req, res, next) => {
   const { firstName, lastName, email,phone, password, confirmPassword} = req.body;
+     console.log(req.body);
 
   if (!firstName || !lastName ||!phone|| !email || !password, !confirmPassword) {
     return next(appError.create("All fields are required", 400, httpStatusText.FAIL));
